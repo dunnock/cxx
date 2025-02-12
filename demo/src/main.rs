@@ -1,7 +1,7 @@
 #[cxx::bridge(namespace = "org::blobstore")]
 mod ffi {
     // Shared structs with fields visible to both languages.
-    struct BlobMetadata {
+    pub struct BlobMetadata {
         size: usize,
         tags: Vec<String>,
     }
@@ -10,6 +10,7 @@ mod ffi {
     extern "Rust" {
         type MultiBuf;
 
+        fn create_multibuf(chunk: Vec<u8>) -> Box<MultiBuf>;
         fn next_chunk(buf: &mut MultiBuf) -> &[u8];
     }
 
@@ -19,10 +20,10 @@ mod ffi {
 
         type BlobstoreClient;
 
-        fn new_blobstore_client() -> UniquePtr<BlobstoreClient>;
-        fn put(&self, parts: &mut MultiBuf) -> u64;
-        fn tag(&self, blobid: u64, tag: &str);
-        fn metadata(&self, blobid: u64) -> BlobMetadata;
+        pub fn new_blobstore_client() -> UniquePtr<BlobstoreClient>;
+        pub fn put(&self, parts: &mut MultiBuf) -> u64;
+        pub fn tag(&self, blobid: u64, tag: &str);
+        pub fn metadata(&self, blobid: u64) -> BlobMetadata;
     }
 }
 
@@ -32,8 +33,14 @@ mod ffi {
 // over some more complex Rust data structure like a rope, or maybe loading
 // chunks lazily from somewhere.
 pub struct MultiBuf {
-    chunks: Vec<Vec<u8>>,
-    pos: usize,
+    pub chunks: Vec<Vec<u8>>,
+    pub pos: usize,
+}
+pub fn create_multibuf(chunk: Vec<u8>) -> Box<MultiBuf> {
+    Box::new(MultiBuf {
+        chunks: vec![chunk],
+        pos: 0,
+    })
 }
 pub fn next_chunk(buf: &mut MultiBuf) -> &[u8] {
     let next = buf.chunks.get(buf.pos);
