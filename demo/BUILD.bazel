@@ -1,5 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_static_library")
 load("//tools/bazel:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 rust_binary(
@@ -9,6 +9,29 @@ rust_binary(
     deps = [
         ":blobstore-sys",
         ":bridge",
+        "//:cxx",
+    ],
+)
+
+rust_static_library(
+    name = "demolib",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    deps = [
+        ":blobstore-sys",
+        ":bridge",
+        "//:cxx",
+    ],
+)
+
+cc_binary(
+    name = "democc",
+    srcs = ["src/main.cc"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":blobstore-sys",
+        ":bridge",
+        ":demolib",
         "//:cxx",
     ],
 )
